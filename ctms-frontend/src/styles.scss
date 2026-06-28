@@ -1,0 +1,360 @@
+@use '@angular/material' as mat;
+
+/* ============================================================================
+   CTMS theme
+   ----------------------------------------------------------------------------
+   Angular Material 19 (Material 3) theming. Primary is a calm clinical azure;
+   the tertiary cyan is reserved for accents. Body/UI type is Inter; headings
+   use Fraunces (loaded in index.html) for a restrained editorial contrast that
+   keeps the app from reading as a default Material template.
+   ========================================================================== */
+
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$cyan-palette,
+    ),
+    typography: Inter,
+    density: 0,
+  ));
+
+  /* App-level design tokens (used by hand-written layout/components).
+     Wrapped in `& {}` because they follow the mat.theme() nested rules
+     (opts into the upcoming CSS-aligned Sass declaration behaviour). */
+  & {
+    --ctms-bg: #f3f5f7;
+    --ctms-surface: #ffffff;
+    --ctms-border: #e2e7ec;
+    --ctms-ink: #16202b;
+    --ctms-ink-soft: #5a6b7b;
+    --ctms-primary: #00658f;
+    --ctms-primary-ink: #ffffff;
+    --ctms-sidebar: #0f1f2c;
+    --ctms-sidebar-ink: #c6d2dc;
+    --ctms-sidebar-ink-active: #ffffff;
+
+    /* Status palette (maps to backend enum string values). */
+    --ctms-success: #1f7a4d;
+    --ctms-success-bg: #e3f3ea;
+    --ctms-warn: #9a6500;
+    --ctms-warn-bg: #fcefd6;
+    --ctms-danger: #b3261e;
+    --ctms-danger-bg: #fbe6e4;
+    --ctms-neutral: #51606e;
+    --ctms-neutral-bg: #eaeef2;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--ctms-bg);
+  color: var(--ctms-ink);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+
+h1, h2, h3, .display {
+  font-family: Fraunces, Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+a { color: var(--ctms-primary); }
+
+/* ---- reusable layout primitives ------------------------------------------ */
+
+.page {
+  padding: 24px clamp(16px, 4vw, 40px);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.page__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.page__title { margin: 0; font-size: 1.6rem; }
+.page__subtitle { margin: 4px 0 0; color: var(--ctms-ink-soft); font-size: 0.9rem; }
+
+.card {
+  background: var(--ctms-surface);
+  border: 1px solid var(--ctms-border);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+.grid--stats { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.grid--cards { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+
+/* ---- status chip ---------------------------------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.4;
+  background: var(--ctms-neutral-bg);
+  color: var(--ctms-neutral);
+  white-space: nowrap;
+}
+.chip--success { background: var(--ctms-success-bg); color: var(--ctms-success); }
+.chip--warn    { background: var(--ctms-warn-bg);    color: var(--ctms-warn); }
+.chip--danger  { background: var(--ctms-danger-bg);  color: var(--ctms-danger); }
+.chip--neutral { background: var(--ctms-neutral-bg); color: var(--ctms-neutral); }
+
+/* ---- table helpers -------------------------------------------------------- */
+
+table.mat-mdc-table { background: transparent; width: 100%; }
+.table-wrap {
+  background: var(--ctms-surface);
+  border: 1px solid var(--ctms-border);
+  border-radius: 14px;
+  overflow: auto;
+}
+
+/* ---- misc ----------------------------------------------------------------- */
+
+.muted { color: var(--ctms-ink-soft); }
+.row-actions { display: flex; gap: 4px; align-items: center; }
+.spacer { flex: 1 1 auto; }
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 56px 20px;
+  color: var(--ctms-ink-soft);
+}
+.state mat-icon { width: 40px; height: 40px; font-size: 40px; opacity: 0.5; }
+
+.center-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.field-full { width: 100%; }
+.form-grid { display: grid; gap: 4px 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+/* ---- snackbar tones (referenced by UiService) ----------------------------- */
+
+.ctms-snack--success {
+  --mdc-snackbar-container-color: #14532d;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #bbf7d0;
+}
+.ctms-snack--error {
+  --mdc-snackbar-container-color: #7f1d1d;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #fecaca;
+}
+.ctms-snack--info {
+  --mdc-snackbar-container-color: #0f1f2c;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #9bd3ec;
+}
+
+/* ---- stat card (dashboards) ----------------------------------------------- */
+
+.stat {
+  background: var(--ctms-surface);
+  border: 1px solid var(--ctms-border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stat__value { font-size: 2rem; font-weight: 700; line-height: 1; font-family: Fraunces, Georgia, serif; }
+.stat__label { color: var(--ctms-ink-soft); font-size: 0.85rem; }
+.stat__icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: grid; place-items: center;
+  background: var(--ctms-neutral-bg); color: var(--ctms-primary);
+  margin-bottom: 4px;
+}
+
+/* ===========================================================================
+   Staff portal polish — role accents, hero headers, metric bars, toolbars.
+   A role class on the layout shell (.role-doctor / .role-clinical /
+   .role-manager) re-points --ctms-accent so each portal has its own identity
+   while sharing one component set.
+   =========================================================================== */
+
+:root { --ctms-accent: #00658f; --ctms-accent-bg: #e3f1f8; --ctms-accent-ink: #ffffff; }
+.role-doctor   { --ctms-accent: #0f766e; --ctms-accent-bg: #d7f0ec; --ctms-accent-ink: #ffffff; }
+.role-clinical { --ctms-accent: #6d28d9; --ctms-accent-bg: #ece2fb; --ctms-accent-ink: #ffffff; }
+.role-manager  { --ctms-accent: #b45309; --ctms-accent-bg: #fbeBCB; --ctms-accent-ink: #ffffff; }
+.role-admin    { --ctms-accent: #00658f; --ctms-accent-bg: #e3f1f8; --ctms-accent-ink: #ffffff; }
+
+/* Hero header for dashboards */
+.hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  padding: 26px 28px;
+  margin-bottom: 22px;
+  color: #fff;
+  background:
+    radial-gradient(1200px 200px at 100% -40%, rgba(255,255,255,.18), transparent),
+    linear-gradient(135deg, var(--ctms-accent), color-mix(in srgb, var(--ctms-accent) 62%, #0b1622));
+  box-shadow: 0 14px 34px -18px color-mix(in srgb, var(--ctms-accent) 70%, transparent);
+}
+.hero h1 { margin: 0; font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 1.7rem; }
+.hero p { margin: 6px 0 0; opacity: .92; max-width: 60ch; line-height: 1.5; }
+.hero__icon {
+  position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+  width: 92px; height: 92px; opacity: .16;
+}
+.hero__icon mat-icon { font-size: 92px; width: 92px; height: 92px; }
+
+/* Accent + interactive stat cards */
+.stat--accent .stat__icon { background: var(--ctms-accent-bg); color: var(--ctms-accent); }
+.stat--accent { border-top: 3px solid var(--ctms-accent); }
+.stat--link { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+.stat--link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -16px rgba(16,32,43,.55);
+  border-color: color-mix(in srgb, var(--ctms-accent) 45%, var(--ctms-border));
+}
+.stat__hint { font-size: .72rem; color: var(--ctms-ink-soft); display: inline-flex; align-items: center; gap: 3px; }
+
+/* Metric progress bar (completion / compliance rates) */
+.metric { display: flex; flex-direction: column; gap: 7px; }
+.metric__top { display: flex; justify-content: space-between; align-items: baseline; }
+.metric__label { color: var(--ctms-ink-soft); font-size: .82rem; }
+.metric__value { font-weight: 700; font-size: 1.05rem; }
+.metric__bar { height: 8px; border-radius: 99px; background: var(--ctms-neutral-bg); overflow: hidden; }
+.metric__fill { height: 100%; border-radius: 99px; background: var(--ctms-accent); transition: width .5s ease; }
+
+/* Page toolbar (search + filters + primary action) */
+.toolbar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.toolbar .grow { flex: 1 1 240px; }
+.toolbar mat-form-field { margin-bottom: -1.25em; } /* swallow MDC subscript space in a row */
+
+/* Section heading inside cards */
+.section-title {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 650; margin: 0 0 12px;
+}
+.section-title mat-icon { color: var(--ctms-accent); }
+
+/* Card hover lift used for clickable cards */
+.card--hover { transition: transform .15s ease, box-shadow .15s ease; cursor: pointer; }
+.card--hover:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -18px rgba(16,32,43,.5); }
+
+/* Table rows: subtle hover */
+table.mat-mdc-table .mat-mdc-row:hover { background: color-mix(in srgb, var(--ctms-accent-bg) 55%, transparent); }
+
+/* Accent the active sidebar item per role */
+.role-doctor   .nav a.active, .role-clinical .nav a.active, .role-manager .nav a.active { /* layout supplies base */ }
+
+/* Tighten dialogs */
+.ctms-dialog .mat-mdc-dialog-surface { border-radius: 16px; }
+
+/* Pills row for quick filters */
+.filter-toggle { --mat-standard-button-toggle-height: 36px; }
+
+/* ---- skeleton loaders ----------------------------------------------------- */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* ---- global animations (public redesign) -------------------------------- */
+.fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+.slide-up {
+  opacity: 0;
+  animation: slideUp 0.8s ease-out forwards;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- Toast Notifications ------------------------------------------------ */
+.ctms-snack--success .mdc-snackbar__surface {
+  background-color: var(--ctms-success) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+.ctms-snack--success .mdc-snackbar__label {
+  color: white !important;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+.ctms-snack--success .mdc-snackbar__label::before {
+  content: "check_circle";
+  font-family: 'Material Symbols Outlined', 'Material Icons';
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.ctms-snack--error .mdc-snackbar__surface {
+  background-color: var(--ctms-danger) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+.ctms-snack--error .mdc-snackbar__label {
+  color: white !important;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+.ctms-snack--error .mdc-snackbar__label::before {
+  content: "error";
+  font-family: 'Material Symbols Outlined', 'Material Icons';
+  margin-right: 8px;
+  font-size: 20px;
+}

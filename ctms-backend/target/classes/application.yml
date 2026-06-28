@@ -1,0 +1,107 @@
+spring:
+  application:
+    name: ctms-backend
+
+  # Surface unmatched routes as exceptions so GlobalExceptionHandler can return a
+  # consistent ApiResponse 404. (Boot 3.2+ raises NoResourceFoundException for
+  # unmatched paths; we deliberately do NOT disable static resource mappings,
+  # because Swagger UI is served through them.)
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ctms_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:pgankit}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: ctms-pool
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      minimum-idle: 2
+
+  jpa:
+    hibernate:
+      # The PostgreSQL schema (sql/schema.sql) is the source of truth.
+      # Hibernate must NEVER create or alter tables; load the schema manually.
+      ddl-auto: none
+    open-in-view: false
+    show-sql: ${JPA_SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+        # Dialect is auto-detected from the PostgreSQL driver; left implicit on purpose.
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# ---------------------------------------------------------------------------
+# Application-specific configuration
+# ---------------------------------------------------------------------------
+ctms:
+  security:
+    # PRODUCTION DEFAULT: true. Every /api/** call except /api/auth/login needs a
+    # Bearer/X-Auth-Token session token; per-endpoint roles are enforced via
+    # @PreAuthorize (see docs/SECURITY_AUDIT_RBAC.md for the full access matrix).
+    # Set CTMS_SECURITY_ENABLED=false ONLY for local development: unauthenticated
+    # requests then act as the system user below (seeded Admin) so Swagger UI
+    # works without logging in. A warning is logged at startup in that mode.
+    enabled: ${CTMS_SECURITY_ENABLED:true}
+    # Dev-mode acting user + fallback for audit / created_by columns.
+    system-user-id: ${CTMS_SYSTEM_USER_ID:1}
+    # Session-token lifetime in minutes (default 12h). 0/negative = never expires.
+    token-validity-minutes: ${CTMS_TOKEN_VALIDITY_MINUTES:720}
+  cors:
+    # Origins permitted to call the API (CSV via env, list in YAML).
+    allowed-origins: ${CTMS_CORS_ORIGINS:http://localhost:3000,http://localhost:4200}
+    allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+    allowed-headers: "*"
+    exposed-headers: X-Correlation-Id
+    allow-credentials: true
+    max-age: 3600
+  rate-limit:
+    # Simple in-process fixed-window limiter; off by default. Per-instance only.
+    enabled: ${CTMS_RATE_LIMIT_ENABLED:false}
+    requests-per-window: ${CTMS_RATE_LIMIT_REQUESTS:100}
+    window-seconds: ${CTMS_RATE_LIMIT_WINDOW:60}
+
+# springdoc-openapi / Swagger UI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+# Actuator: expose a minimal, safe set of endpoints plus k8s-style probes.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+      # Enables /actuator/health/liveness and /actuator/health/readiness.
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+logging:
+  # Include the per-request correlation id (set by CorrelationIdFilter) in every line.
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{correlationId:-}] %logger{36} - %msg%n"
+  level:
+    root: INFO
+    com.ctms: ${CTMS_LOG_LEVEL:DEBUG}
+    org.hibernate.SQL: ${JPA_SHOW_SQL:false}
+    org.springframework.web: INFO
