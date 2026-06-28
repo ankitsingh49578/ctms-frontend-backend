@@ -171,11 +171,13 @@ C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\
 C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\AuthService.java
 C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\ConsentService.java
 C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\DoctorService.java
+C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\FileStorageService.java
 C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\impl\AdverseEventServiceImpl.java
 C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\impl\AuditServiceImpl.java
 C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\impl\AuthServiceImpl.java
 C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\impl\ConsentServiceImpl.java
 C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\impl\DoctorServiceImpl.java
+C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\impl\FileStorageServiceImpl.java
 C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\impl\ManagerServiceImpl.java
 C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\impl\NotificationServiceImpl.java
 C:\Users\hp\Downloads\ctms-frontend-backend\ctms-backend\src\main\java\com\ctms\service\impl\ParticipantPortalServiceImpl.java

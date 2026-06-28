@@ -24,6 +24,7 @@ export const ENDPOINTS = {
     consents: '/api/portal/me/consents',           // GET
     signConsent: (id: number) => `/api/portal/me/consents/${id}/sign`,
     declineConsent: (id: number) => `/api/portal/me/consents/${id}/decline`,
+    consentDocument: (id: number) => `/api/portal/me/consents/${id}/document`,
     visits: '/api/portal/me/visits',               // GET (paged)
     testResults: '/api/portal/me/test-results',    // GET
     adverseEvents: '/api/portal/adverse-events',
@@ -85,6 +86,7 @@ export const ENDPOINTS = {
     withdraw: (id: number) => `/api/consents/${id}/withdraw`,
     byPatient: (id: number) => `/api/consents/patient/${id}`,
     byTrial: (id: number) => `/api/consents/trial/${id}`,
+    document: (id: number) => `/api/consents/${id}/document`,
   },
   visits: {
     create: '/api/visits', count: '/api/visits/count', upcoming: '/api/visits/upcoming',

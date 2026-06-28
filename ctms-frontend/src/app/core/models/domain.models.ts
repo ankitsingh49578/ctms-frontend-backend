@@ -107,6 +107,11 @@ export interface ConsentResponse {
   consentDate?: string;
   consentStatus: string;
   filePath?: string;
+  documentName?: string;
+  documentSize?: number;
+  uploadedBy?: string;
+  uploadedDate?: string;
+  signedDate?: string;
 }
 
 export interface VisitResponse {

@@ -158,6 +158,11 @@ public class SessionTokenAuthenticationFilter extends OncePerRequestFilter {
         if (custom != null && !custom.isBlank()) {
             return custom.trim();
         }
+        // Support token as query param for iframe/download requests (PDF viewer)
+        String queryToken = request.getParameter("token");
+        if (queryToken != null && !queryToken.isBlank()) {
+            return queryToken.trim();
+        }
         return null;
     }
 }

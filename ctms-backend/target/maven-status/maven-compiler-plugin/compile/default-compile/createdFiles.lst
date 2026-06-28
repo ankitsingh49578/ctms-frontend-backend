@@ -140,6 +140,7 @@ com\ctms\entity\Doctor.class
 com\ctms\repository\PermissionRepository.class
 com\ctms\entity\Trial.class
 com\ctms\service\impl\AdverseEventServiceImpl.class
+com\ctms\service\FileStorageService.class
 com\ctms\controller\EnrollmentController.class
 com\ctms\controller\PortalController.class
 com\ctms\controller\ConsentController.class
@@ -198,6 +199,7 @@ com\ctms\entity\Role.class
 com\ctms\mapper\AnalyticsMapper.class
 com\ctms\CtmsApplication.class
 com\ctms\dto\response\TrialAssignmentResponse.class
+com\ctms\service\impl\FileStorageServiceImpl.class
 com\ctms\util\DateUtil.class
 com\ctms\entity\ClinicalManager.class
 com\ctms\mapper\AdverseEventMapper.class

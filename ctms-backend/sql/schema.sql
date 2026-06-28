@@ -281,6 +281,12 @@ CREATE TABLE consent_forms (
                      CONSTRAINT chk_consent_status
                      CHECK (consent_status IN ('Pending','Signed','Declined','Withdrawn')),
     file_path        VARCHAR(255),
+    document_name    VARCHAR(255),
+    document_path    VARCHAR(500),
+    document_size    BIGINT,
+    uploaded_by      VARCHAR(100),
+    uploaded_date    TIMESTAMP,
+    signed_date      TIMESTAMP,
     CONSTRAINT fk_consent_patient FOREIGN KEY (patient_id) REFERENCES patients(patient_id)
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_consent_trial FOREIGN KEY (trial_id) REFERENCES trials(trial_id)

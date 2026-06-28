@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /** consent_forms table. Informed-consent record for a patient on a trial. */
 @Entity
@@ -41,4 +42,24 @@ public class ConsentForm {
 
     @Column(name = "file_path", length = 255)
     private String filePath;
+
+    /* ---- Document metadata (PDF upload) ---- */
+
+    @Column(name = "document_name", length = 255)
+    private String documentName;
+
+    @Column(name = "document_path", length = 500)
+    private String documentPath;
+
+    @Column(name = "document_size")
+    private Long documentSize;
+
+    @Column(name = "uploaded_by", length = 100)
+    private String uploadedBy;
+
+    @Column(name = "uploaded_date")
+    private LocalDateTime uploadedDate;
+
+    @Column(name = "signed_date")
+    private LocalDateTime signedDate;
 }

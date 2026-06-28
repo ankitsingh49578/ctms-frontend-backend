@@ -20,6 +20,11 @@ public class ConsentMapper {
                 .consentDate(c.getConsentDate())
                 .consentStatus(c.getConsentStatus() != null ? c.getConsentStatus().dbValue() : null)
                 .filePath(c.getFilePath())
+                .documentName(c.getDocumentName())
+                .documentSize(c.getDocumentSize())
+                .uploadedBy(c.getUploadedBy())
+                .uploadedDate(c.getUploadedDate())
+                .signedDate(c.getSignedDate())
                 .build();
     }
 }

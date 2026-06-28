@@ -60,6 +60,11 @@ export class PortalService {
     return this.api.post<void>(ENDPOINTS.portal.declineConsent(consentId));
   }
 
+  /** Returns the full URL to download/view a participant's own consent document. */
+  consentDocumentUrl(consentId: number): string {
+    return this.api.getBaseUrl() + ENDPOINTS.portal.consentDocument(consentId);
+  }
+
   /* clinical records */
   myVisits(query: PageQuery): Observable<Page<VisitResponse>> {
     return this.api.get<Page<VisitResponse>>(ENDPOINTS.portal.visits, { ...query });

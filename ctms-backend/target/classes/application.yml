@@ -33,6 +33,11 @@ spring:
           time_zone: UTC
         # Dialect is auto-detected from the PostgreSQL driver; left implicit on purpose.
 
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 4
+
 server:
   port: ${SERVER_PORT:8080}
   error:

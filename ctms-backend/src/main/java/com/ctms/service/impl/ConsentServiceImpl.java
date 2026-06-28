@@ -18,15 +18,19 @@ import com.ctms.repository.TrialRepository;
 import com.ctms.security.CurrentUserContext;
 import com.ctms.service.AuditService;
 import com.ctms.service.ConsentService;
+import com.ctms.service.FileStorageService;
 import com.ctms.validation.EnumValidator;
 import com.ctms.validation.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -47,10 +51,11 @@ public class ConsentServiceImpl implements ConsentService {
     private final AuditService audit;
     private final CurrentUserContext currentUser;
     private final ConsentMapper consentMapper;
+    private final FileStorageService fileStorage;
 
     @Override
     @Transactional
-    public ConsentResponse createConsent(CreateConsentRequest req) throws CTMSException {
+    public ConsentResponse createConsent(CreateConsentRequest req, MultipartFile document) throws CTMSException {
         log.info("Creating consent form for patient id={} trial id={}", req.getPatientId(), req.getTrialId());
         ValidationUtil.requirePositive(req.getPatientId() == null ? 0 : req.getPatientId(), "patientId");
         ValidationUtil.requirePositive(req.getTrialId() == null ? 0 : req.getTrialId(), "trialId");
@@ -72,7 +77,19 @@ public class ConsentServiceImpl implements ConsentService {
         form.setConsentStatus(req.getConsentStatus() == null || req.getConsentStatus().isBlank()
                 ? ConsentStatus.PENDING
                 : EnumValidator.validate(req.getConsentStatus(), "consentStatus", ConsentStatus::fromDb));
-        form.setFilePath(req.getFilePath());
+
+        // Handle document upload
+        if (document != null && !document.isEmpty()) {
+            String storedPath = fileStorage.store(document);
+            form.setDocumentPath(storedPath);
+            form.setDocumentName(document.getOriginalFilename());
+            form.setDocumentSize(document.getSize());
+            form.setUploadedBy(currentUser.getUser().map(u -> u.getUsername()).orElse("system"));
+            form.setUploadedDate(LocalDateTime.now());
+            form.setFilePath(storedPath); // backward compat
+        } else {
+            form.setFilePath(req.getFilePath());
+        }
 
         ConsentForm saved = consentRepository.save(form);
         audit.record(currentUser.currentUserId(), "CREATE_CONSENT", "Consent");
@@ -124,6 +141,24 @@ public class ConsentServiceImpl implements ConsentService {
                 .stream().map(consentMapper::toResponse).toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Resource getConsentDocument(Integer consentId) throws CTMSException {
+        ConsentForm form = loadConsent(consentId);
+        String path = form.getDocumentPath();
+        if (path == null || path.isBlank()) {
+            throw new ResourceNotFoundException("No document attached to consent id=" + consentId);
+        }
+        return fileStorage.load(path);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getConsentDocumentName(Integer consentId) throws CTMSException {
+        ConsentForm form = loadConsent(consentId);
+        return form.getDocumentName() != null ? form.getDocumentName() : "consent-document.pdf";
+    }
+
     /* ------------------------------------------------------------------ */
 
     private void transition(Integer consentId, ConsentStatus target, String action) throws CTMSException {
@@ -131,6 +166,10 @@ public class ConsentServiceImpl implements ConsentService {
         ConsentForm form = loadConsent(consentId);
         assertTransitionAllowed(form.getConsentStatus(), target);
         form.setConsentStatus(target);
+        if (target == ConsentStatus.SIGNED) {
+            form.setSignedDate(LocalDateTime.now());
+            action = "Accepted Consent - Trial: " + form.getTrial().getTrialName();
+        }
         consentRepository.save(form);
         audit.record(currentUser.currentUserId(), action, "Consent");
         log.info("Consent status updated id={} -> {}", consentId, target.dbValue());

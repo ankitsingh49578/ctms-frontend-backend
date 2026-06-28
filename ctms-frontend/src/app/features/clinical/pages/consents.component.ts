@@ -8,13 +8,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConsentService } from '../services/consents.service';
 import { TrialService } from '../services/trials.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { UiService } from '../../../core/services/ui.service';
 import { ConsentResponse, TrialResponse } from '../../../core/models/domain.models';
 import { statusTone } from '../../../core/models/enums';
 import { ConsentFormDialogComponent } from '../dialogs/consent-form.dialog';
 import { ConfirmDialogComponent, ConfirmData } from '../../../shared/confirm-dialog.component';
+import { PdfViewerDialogComponent, PdfViewerData } from '../../../shared/pdf-viewer.dialog';
 
 @Component({
   selector: 'ctms-consents-management',
@@ -22,7 +25,7 @@ import { ConfirmDialogComponent, ConfirmData } from '../../../shared/confirm-dia
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DatePipe, MatTableModule, MatProgressSpinnerModule, MatButtonModule, MatIconModule,
-    MatFormFieldModule, MatSelectModule, MatMenuModule,
+    MatFormFieldModule, MatSelectModule, MatMenuModule, MatTooltipModule
   ],
   template: `
     <section class="page">
@@ -69,6 +72,22 @@ import { ConfirmDialogComponent, ConfirmData } from '../../../shared/confirm-dia
               <th mat-header-cell *matHeaderCellDef>Trial Name</th>
               <td mat-cell *matCellDef="let c">{{ c.trialName || 'Unknown' }}</td>
             </ng-container>
+            <ng-container matColumnDef="document">
+              <th mat-header-cell *matHeaderCellDef>Document</th>
+              <td mat-cell *matCellDef="let c">
+                @if (c.documentName) {
+                  <div class="document-cell" (click)="viewDocument(c)" matTooltip="Click to view PDF" style="cursor:pointer">
+                    <mat-icon class="pdf-icon">picture_as_pdf</mat-icon>
+                    <div class="doc-info">
+                      <span class="doc-name">{{ c.documentName }}</span>
+                      <span class="doc-size">{{ formatSize(c.documentSize) }}</span>
+                    </div>
+                  </div>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+            </ng-container>
             <ng-container matColumnDef="version">
               <th mat-header-cell *matHeaderCellDef>Version</th>
               <td mat-cell *matCellDef="let c">{{ c.consentVersion || '—' }}</td>
@@ -89,6 +108,9 @@ import { ConfirmDialogComponent, ConfirmData } from '../../../shared/confirm-dia
                 @if (actionable(c.consentStatus)) {
                   <button mat-icon-button [matMenuTriggerFor]="m"><mat-icon>more_vert</mat-icon></button>
                   <mat-menu #m="matMenu">
+                    @if (c.documentName) {
+                      <button mat-menu-item (click)="viewDocument(c)"><mat-icon>visibility</mat-icon>View PDF</button>
+                    }
                     <button mat-menu-item (click)="sign(c)"><mat-icon>draw</mat-icon>Mark signed</button>
                     <button mat-menu-item (click)="decline(c)"><mat-icon>block</mat-icon>Mark declined</button>
                     <button mat-menu-item (click)="withdraw(c)"><mat-icon>undo</mat-icon>Withdraw</button>
@@ -103,10 +125,45 @@ import { ConfirmDialogComponent, ConfirmData } from '../../../shared/confirm-dia
       }
     </section>
   `,
+  styles: [`
+    .document-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .document-cell:hover .doc-name {
+      text-decoration: underline;
+      color: var(--primary);
+    }
+    .pdf-icon {
+      color: #ff6b6b;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+    .doc-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .doc-name {
+      font-weight: 500;
+      font-size: 13px;
+      color: #333;
+      max-width: 150px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .doc-size {
+      font-size: 11px;
+      color: #666;
+    }
+  `]
 })
 export class ConsentsManagementComponent {
   private readonly consents = inject(ConsentService);
   private readonly trialSvc = inject(TrialService);
+  private readonly auth = inject(AuthService);
   private readonly ui = inject(UiService);
   private readonly dialog = inject(MatDialog);
 
@@ -116,7 +173,7 @@ export class ConsentsManagementComponent {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly rows = signal<ConsentResponse[]>([]);
-  readonly columns = ['patient', 'trial', 'version', 'date', 'status', 'actions'];
+  readonly columns = ['patient', 'trial', 'document', 'version', 'date', 'status', 'actions'];
 
   constructor() {
     this.trialSvc.list({ page: 0, size: 200, sort: 'trialName,asc' }).subscribe({
@@ -145,6 +202,28 @@ export class ConsentsManagementComponent {
 
   actionable(status: string): boolean {
     return status !== 'Withdrawn';
+  }
+
+  formatSize(bytes?: number): string {
+    if (!bytes) return '';
+    const mb = bytes / (1024 * 1024);
+    if (mb >= 1) return mb.toFixed(2) + ' MB';
+    return (bytes / 1024).toFixed(0) + ' KB';
+  }
+
+  viewDocument(c: ConsentResponse): void {
+    const data: PdfViewerData = {
+      title: c.documentName || 'Consent Document',
+      pdfUrl: this.consents.documentUrl(c.consentId),
+      token: this.auth.token() || ''
+    };
+    
+    this.dialog.open(PdfViewerDialogComponent, {
+      data,
+      width: '90vw',
+      maxWidth: '1200px',
+      panelClass: 'pdf-dialog'
+    });
   }
 
   create(): void {

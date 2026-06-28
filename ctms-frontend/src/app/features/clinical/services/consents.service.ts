@@ -1,8 +1,12 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
 import { ENDPOINTS } from '../../../core/constants/api-endpoints';
-import { ConsentResponse, CreateConsentRequest } from '../../../core/models/domain.models';
+import { ConsentResponse } from '../../../core/models/domain.models';
+import { ApiResponse } from '../../../core/models/api.models';
+import { environment } from '../../../../environments/environment';
 
 /**
  * ConsentController (/api/consents). Create/manage is CLINICAL_MANAGER only;
@@ -12,10 +16,19 @@ import { ConsentResponse, CreateConsentRequest } from '../../../core/models/doma
 @Injectable({ providedIn: 'root' })
 export class ConsentService {
   private readonly api = inject(ApiService);
+  private readonly http = inject(HttpClient);
 
-  create(body: CreateConsentRequest): Observable<ConsentResponse> {
-    return this.api.post<ConsentResponse>(ENDPOINTS.consents.create, body);
+  create(body: Record<string, any>, document?: File): Observable<ConsentResponse> {
+    const formData = new FormData();
+    formData.append('consent', new Blob([JSON.stringify(body)], { type: 'application/json' }));
+    if (document) {
+      formData.append('document', document, document.name);
+    }
+    return this.http.post<ApiResponse<ConsentResponse>>(
+      environment.apiBaseUrl + ENDPOINTS.consents.create, formData
+    ).pipe(map(r => r.data));
   }
+
   get(id: number): Observable<ConsentResponse> {
     return this.api.get<ConsentResponse>(ENDPOINTS.consents.byId(id));
   }
@@ -33,5 +46,10 @@ export class ConsentService {
   }
   forTrial(trialId: number): Observable<ConsentResponse[]> {
     return this.api.get<ConsentResponse[]>(ENDPOINTS.consents.byTrial(trialId));
+  }
+
+  /** Returns the full URL to download/view the consent document. */
+  documentUrl(consentId: number): string {
+    return environment.apiBaseUrl + ENDPOINTS.consents.document(consentId);
   }
 }

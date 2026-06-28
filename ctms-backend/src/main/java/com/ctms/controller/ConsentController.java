@@ -5,13 +5,17 @@ import com.ctms.dto.request.CreateConsentRequest;
 import com.ctms.dto.response.ConsentResponse;
 import com.ctms.exception.CTMSException;
 import com.ctms.service.ConsentService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,13 +28,17 @@ import org.springframework.security.access.prepost.PreAuthorize;
 public class ConsentController {
 
     private final ConsentService consentService;
+    private final ObjectMapper objectMapper;
 
     @PreAuthorize("hasRole('CLINICAL_MANAGER')")
-    @PostMapping
-    @Operation(summary = "Create a consent record")
-    public ResponseEntity<ApiResponse<ConsentResponse>> create(@Valid @RequestBody CreateConsentRequest request)
-            throws CTMSException {
-        ConsentResponse created = consentService.createConsent(request);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Create a consent record with PDF document")
+    public ResponseEntity<ApiResponse<ConsentResponse>> create(
+            @RequestPart("consent") String consentJson,
+            @RequestPart(value = "document", required = false) MultipartFile document)
+            throws Exception {
+        CreateConsentRequest request = objectMapper.readValue(consentJson, CreateConsentRequest.class);
+        ConsentResponse created = consentService.createConsent(request, document);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created("Consent created", created));
     }
 
@@ -39,6 +47,18 @@ public class ConsentController {
     @Operation(summary = "Get a consent record by id")
     public ResponseEntity<ApiResponse<ConsentResponse>> get(@PathVariable Integer id) throws CTMSException {
         return ResponseEntity.ok(ApiResponse.ok(consentService.getConsent(id)));
+    }
+
+    @PreAuthorize("hasRole('CLINICAL_MANAGER') or @accessGuard.isOwnConsent(#id)")
+    @GetMapping("/{id}/document")
+    @Operation(summary = "Download the PDF document for a consent record")
+    public ResponseEntity<Resource> getDocument(@PathVariable Integer id) throws CTMSException {
+        Resource resource = consentService.getConsentDocument(id);
+        String filename = consentService.getConsentDocumentName(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                .body(resource);
     }
 
     @PreAuthorize("hasRole('CLINICAL_MANAGER') or @accessGuard.isOwnConsent(#id)")

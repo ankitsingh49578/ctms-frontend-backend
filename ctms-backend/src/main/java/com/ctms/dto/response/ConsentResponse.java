@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /** Read model for an informed-consent record. */
 @Data
@@ -22,4 +23,11 @@ public class ConsentResponse {
     private LocalDate consentDate;
     private String consentStatus;    // ConsentStatus dbValue
     private String filePath;
+
+    /* ---- Document metadata ---- */
+    private String documentName;
+    private Long documentSize;
+    private String uploadedBy;
+    private LocalDateTime uploadedDate;
+    private LocalDateTime signedDate;
 }

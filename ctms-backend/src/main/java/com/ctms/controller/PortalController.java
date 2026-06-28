@@ -14,15 +14,19 @@ import com.ctms.dto.response.TestResultResponse;
 import com.ctms.dto.response.TrialResponse;
 import com.ctms.dto.response.VisitResponse;
 import com.ctms.exception.CTMSException;
+import com.ctms.service.ConsentService;
 import com.ctms.service.ParticipantPortalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -52,6 +56,7 @@ import java.util.List;
 public class PortalController {
 
     private final ParticipantPortalService portal;
+    private final ConsentService consentService;
 
     /* ----- Profile & account ----------------------------------------- */
 
@@ -155,6 +160,18 @@ public class PortalController {
             throws CTMSException {
         portal.declineConsent(consentId);
         return ResponseEntity.ok(ApiResponse.ok("Consent declined", null));
+    }
+
+    @PreAuthorize("hasRole('PARTICIPANT') and @accessGuard.isOwnConsent(#consentId)")
+    @GetMapping("/me/consents/{consentId}/document")
+    @Operation(summary = "Download the PDF document for one of my consent forms")
+    public ResponseEntity<Resource> getConsentDocument(@PathVariable Integer consentId) throws CTMSException {
+        Resource resource = consentService.getConsentDocument(consentId);
+        String filename = consentService.getConsentDocumentName(consentId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                .body(resource);
     }
 
     /* ----- Clinical records ------------------------------------------ */
