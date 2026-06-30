@@ -199,7 +199,10 @@ CREATE TABLE patients (
     status         VARCHAR(10) NOT NULL DEFAULT 'Active'
                    CONSTRAINT chk_patient_status
                    CHECK (status IN ('Active','Inactive','Pending','Verified')),
-    medical_history_document_name VARCHAR(255),
+    medical_document_name VARCHAR(255),
+    medical_document_path VARCHAR(500),
+    medical_document_size BIGINT,
+    medical_document_uploaded_date TIMESTAMP,
     created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_patient_user FOREIGN KEY (user_id) REFERENCES users(user_id)
         ON DELETE CASCADE ON UPDATE CASCADE

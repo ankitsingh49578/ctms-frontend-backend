@@ -269,7 +269,7 @@ export function ageValidator(min: number, max: number) {
                   <h3 class="step-title">Medical History Document *</h3>
                   <p class="step-desc">
                     Upload your previous medical history document. Supported
-                    formats: PDF, JPG, JPEG, PNG.
+                    formats: PDF, JPG, JPEG, PNG. Maximum size: 1MB.
                   </p>
 
                   <div
@@ -706,6 +706,7 @@ export class RegisterComponent {
   readonly maxDate = new Date();
   readonly hidePassword = signal(true);
   readonly hideConfirmPassword = signal(true);
+  readonly selectedFile = signal<File | null>(null);
 
   readonly form = this.fb.group({
     personalInfo: this.fb.group({
@@ -811,6 +812,18 @@ export class RegisterComponent {
   }
 
   handleFile(file: File) {
+    const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (!validTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.pdf') && !file.name.toLowerCase().endsWith('.jpg') && !file.name.toLowerCase().endsWith('.jpeg') && !file.name.toLowerCase().endsWith('.png')) {
+      this.ui.error('Only PDF, JPG, JPEG, and PNG files are allowed.');
+      return;
+    }
+
+    if (file.size > 1 * 1024 * 1024) {
+      this.ui.error('Maximum file size is 1 MB.');
+      return;
+    }
+
+    this.selectedFile.set(file);
     this.medicalInfoForm.patchValue({ medicalHistoryDocumentName: file.name });
     this.medicalInfoForm.get("medicalHistoryDocumentName").markAsTouched();
     const size = (file.size / 1024).toFixed(2);
@@ -823,6 +836,7 @@ export class RegisterComponent {
 
   removeFile(event: Event) {
     event.stopPropagation();
+    this.selectedFile.set(null);
     this.medicalInfoForm.patchValue({ medicalHistoryDocumentName: "" });
     this.fileSize.set("");
   }
@@ -851,7 +865,19 @@ export class RegisterComponent {
       payload.dob = `${year}-${month}-${day}`;
     }
 
-    this.api.post(ENDPOINTS.auth.register, payload).subscribe({
+    const formData = new FormData();
+    const patientBlob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    formData.append('patient', patientBlob);
+    
+    if (this.selectedFile()) {
+      formData.append('medicalDocument', this.selectedFile() as File);
+    } else {
+      this.ui.error("Medical History Document is mandatory.");
+      this.loading.set(false);
+      return;
+    }
+
+    this.api.post(ENDPOINTS.auth.register, formData).subscribe({
       next: () => {
         this.loading.set(false);
         this.ui.success(

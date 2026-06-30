@@ -22,6 +22,7 @@ public interface ParticipantService {
     Page<PatientResponse> listParticipants(Pageable pageable);
     Page<PatientResponse> searchParticipants(String keyword, Pageable pageable);
     long countParticipants();
+    org.springframework.core.io.Resource downloadMedicalDocument(Integer patientId) throws CTMSException;
 
     /** Enroll a participant into a trial (trial must exist and be Active; no duplicates). */
     EnrollmentResponse enroll(CreateEnrollmentRequest request) throws CTMSException;

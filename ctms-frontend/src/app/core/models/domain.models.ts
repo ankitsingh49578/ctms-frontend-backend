@@ -56,7 +56,10 @@ export interface PatientResponse {
   address?: string;
   bloodGroup?: string;
   status: string;
-  medicalHistoryDocumentName?: string;
+  medicalDocumentName?: string;
+  medicalDocumentPath?: string;
+  medicalDocumentSize?: number;
+  uploadedDate?: string;
   createdAt?: string;
 }
 
@@ -121,6 +124,7 @@ export interface VisitResponse {
   patientId: number;
   patientName?: string;
   doctorId?: number;
+  doctorName?: string;
   managerId?: number;
   visitNumber?: number;
   visitType?: string;
@@ -399,7 +403,7 @@ export interface CreateConsentRequest {
 export interface CreateVisitRequest {
   trialId: number;
   patientId: number;
-  doctorId?: number;
+  doctorId: number;
   managerId?: number;
   visitNumber: number;
   visitType: string;

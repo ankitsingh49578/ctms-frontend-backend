@@ -19,6 +19,7 @@ public class VisitResponse {
     private Integer patientId;
     private String patientName;
     private Integer doctorId;        // nullable
+    private String doctorName;
     private Integer managerId;       // nullable
     private Integer visitNumber;
     private String visitType;

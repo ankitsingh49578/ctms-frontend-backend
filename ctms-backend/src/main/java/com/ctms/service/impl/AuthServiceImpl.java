@@ -57,6 +57,7 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final PatientRepository patientRepository;
     private final CtmsSecurityProperties securityProperties;
+    private final com.ctms.service.FileStorageService fileStorageService;
 
     @Override
     @Transactional
@@ -129,7 +130,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public com.ctms.dto.response.PatientResponse registerParticipant(com.ctms.dto.request.RegisterRequest req) throws CTMSException {
+    public com.ctms.dto.response.PatientResponse registerParticipant(com.ctms.dto.request.RegisterRequest req, MultipartFile medicalDocument) throws CTMSException {
         log.info("Registering new participant: {}", req.getEmail());
 
         if (userRepository.existsByUsername(req.getUsername())) {
@@ -166,11 +167,24 @@ public class AuthServiceImpl implements AuthService {
         patient.setFirstName(req.getFirstName());
         patient.setLastName(req.getLastName());
         patient.setDob(req.getDob());
-        patient.setGender(com.ctms.validation.EnumValidator.validate(req.getGender(), "gender", Gender::fromDb));
+        patient.setGender(com.ctms.validation.EnumValidator.validate(req.getGender(), "gender", com.ctms.enums.Gender::fromDb));
         patient.setPhone(req.getPhone());
         patient.setEmail(req.getEmail());
-        patient.setStatus("Pending");
+        patient.setAddress(req.getAddress());
         
+        // Store medical document
+        if (medicalDocument != null && !medicalDocument.isEmpty()) {
+            String path = fileStorageService.store(medicalDocument, com.ctms.service.FileStorageService.Context.MEDICAL);
+            patient.setMedicalDocumentName(medicalDocument.getOriginalFilename());
+            patient.setMedicalDocumentPath(path);
+            patient.setMedicalDocumentSize(medicalDocument.getSize());
+            patient.setMedicalDocumentUploadedDate(LocalDateTime.now());
+        } else {
+            throw new com.ctms.exception.ValidationException("Medical History Document is mandatory.");
+        }
+
+        patient.setStatus("Pending");
+
         String patientCode;
         long seq = patientRepository.nextPatientCodeSeq();
         while (true) {
@@ -181,9 +195,6 @@ public class AuthServiceImpl implements AuthService {
             seq = patientRepository.nextPatientCodeSeq();
         }
         patient.setPatientCode(patientCode);
-        
-        patient.setMedicalHistoryDocumentName(req.getMedicalHistoryDocumentName());
-        patient.setAddress(req.getAddress());
 
         Patient savedPatient = patientRepository.save(patient);
         

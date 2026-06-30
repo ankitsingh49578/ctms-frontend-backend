@@ -80,7 +80,7 @@ public class ConsentServiceImpl implements ConsentService {
 
         // Handle document upload
         if (document != null && !document.isEmpty()) {
-            String storedPath = fileStorage.store(document);
+            String storedPath = fileStorage.store(document, FileStorageService.Context.CONSENT);
             form.setDocumentPath(storedPath);
             form.setDocumentName(document.getOriginalFilename());
             form.setDocumentSize(document.getSize());

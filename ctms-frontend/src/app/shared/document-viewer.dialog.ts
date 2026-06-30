@@ -4,14 +4,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
-export interface PdfViewerData {
+export interface DocumentViewerData {
   title: string;
-  pdfUrl: string;
+  documentUrl: string;
   token: string;
 }
 
 @Component({
-  selector: 'ctms-pdf-viewer-dialog',
+  selector: 'ctms-document-viewer-dialog',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatDialogModule, MatButtonModule, MatIconModule],
@@ -19,7 +19,7 @@ export interface PdfViewerData {
     <div class="pdf-viewer-container">
       <div class="pdf-toolbar">
         <div class="pdf-toolbar-left">
-          <mat-icon class="pdf-icon">picture_as_pdf</mat-icon>
+          <mat-icon class="pdf-icon">{{ isImage ? 'image' : 'picture_as_pdf' }}</mat-icon>
           <span class="pdf-title">{{ data.title }}</span>
         </div>
         <div class="pdf-toolbar-right">
@@ -35,7 +35,13 @@ export interface PdfViewerData {
         </div>
       </div>
       <div class="pdf-content">
-        <iframe [src]="safePdfUrl" class="pdf-iframe" title="Consent Document"></iframe>
+        @if (isImage) {
+          <div class="image-container">
+            <img [src]="safeDocumentUrl" [alt]="data.title" class="doc-image" />
+          </div>
+        } @else {
+          <iframe [src]="safeDocumentUrl" class="pdf-iframe" title="Document Viewer"></iframe>
+        }
       </div>
     </div>
   `,
@@ -98,6 +104,9 @@ export interface PdfViewerData {
       background: #525659;
       border-radius: 0 0 8px 8px;
       overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .pdf-iframe {
@@ -105,28 +114,48 @@ export interface PdfViewerData {
       height: 100%;
       border: none;
     }
+
+    .image-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #2a2c2e;
+      overflow: auto;
+    }
+
+    .doc-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
   `],
 })
-export class PdfViewerDialogComponent {
-  readonly data = inject<PdfViewerData>(MAT_DIALOG_DATA);
-  private readonly ref = inject(MatDialogRef<PdfViewerDialogComponent>);
+export class DocumentViewerDialogComponent {
+  readonly data = inject<DocumentViewerData>(MAT_DIALOG_DATA);
+  private readonly ref = inject(MatDialogRef<DocumentViewerDialogComponent>);
   private readonly sanitizer = inject(DomSanitizer);
 
-  readonly safePdfUrl: SafeResourceUrl;
+  readonly safeDocumentUrl: SafeResourceUrl;
+  readonly isImage: boolean;
 
   constructor() {
-    // Build the URL with token as a query param for the iframe
-    const separator = this.data.pdfUrl.includes('?') ? '&' : '?';
-    const urlWithToken = `${this.data.pdfUrl}${separator}token=${this.data.token}`;
-    this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(urlWithToken);
+    const lowerTitle = (this.data.title || '').toLowerCase();
+    this.isImage = lowerTitle.endsWith('.jpg') || lowerTitle.endsWith('.jpeg') || lowerTitle.endsWith('.png');
+    
+    // Build the URL with token as a query param
+    const separator = this.data.documentUrl.includes('?') ? '&' : '?';
+    const urlWithToken = `${this.data.documentUrl}${separator}token=${this.data.token}`;
+    this.safeDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(urlWithToken);
   }
 
   download(): void {
-    const separator = this.data.pdfUrl.includes('?') ? '&' : '?';
-    const url = `${this.data.pdfUrl}${separator}token=${this.data.token}`;
+    const separator = this.data.documentUrl.includes('?') ? '&' : '?';
+    const url = `${this.data.documentUrl}${separator}token=${this.data.token}`;
     const a = document.createElement('a');
     a.href = url;
-    a.download = this.data.title || 'consent-document.pdf';
+    a.download = this.data.title || 'document';
     a.target = '_blank';
     document.body.appendChild(a);
     a.click();
@@ -134,9 +163,23 @@ export class PdfViewerDialogComponent {
   }
 
   print(): void {
-    const iframe = document.querySelector('.pdf-iframe') as HTMLIFrameElement;
-    if (iframe?.contentWindow) {
-      iframe.contentWindow.print();
+    if (this.isImage) {
+      const imgUrl = `${this.data.documentUrl}${this.data.documentUrl.includes('?') ? '&' : '?'}token=${this.data.token}`;
+      const printWin = window.open('');
+      if (printWin) {
+        printWin.document.write(`<html><body><img src="${imgUrl}" style="max-width:100%;"></body></html>`);
+        printWin.document.close();
+        printWin.focus();
+        setTimeout(() => {
+          printWin.print();
+          printWin.close();
+        }, 500);
+      }
+    } else {
+      const iframe = document.querySelector('.pdf-iframe') as HTMLIFrameElement;
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.print();
+      }
     }
   }
 

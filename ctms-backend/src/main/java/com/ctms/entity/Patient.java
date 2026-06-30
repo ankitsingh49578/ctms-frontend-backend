@@ -68,8 +68,17 @@ public class Patient {
     @Column(nullable = false, length = 10)
     private String status = "Active";
 
-    @Column(name = "medical_history_document_name", length = 255)
-    private String medicalHistoryDocumentName;
+    @Column(name = "medical_document_name", length = 255)
+    private String medicalDocumentName;
+
+    @Column(name = "medical_document_path", length = 500)
+    private String medicalDocumentPath;
+
+    @Column(name = "medical_document_size")
+    private Long medicalDocumentSize;
+
+    @Column(name = "medical_document_uploaded_date")
+    private LocalDateTime medicalDocumentUploadedDate;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

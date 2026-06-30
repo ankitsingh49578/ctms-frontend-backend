@@ -13,7 +13,7 @@ import { UiService } from '../../../core/services/ui.service';
 import { ConsentResponse } from '../../../core/models/domain.models';
 import { statusTone } from '../../../core/models/enums';
 import { ConfirmDialogComponent, ConfirmData } from '../../../shared/confirm-dialog.component';
-import { PdfViewerDialogComponent, PdfViewerData } from '../../../shared/pdf-viewer.dialog';
+import { DocumentViewerDialogComponent, DocumentViewerData } from '../../../shared/document-viewer.dialog';
 
 @Component({
   selector: 'ctms-portal-consents',
@@ -212,17 +212,17 @@ export class PortalConsentsComponent {
   }
 
   viewDocument(c: ConsentResponse): void {
-    const data: PdfViewerData = {
+    const data: DocumentViewerData = {
       title: c.documentName || 'Consent Document',
-      pdfUrl: this.portal.consentDocumentUrl(c.consentId),
+      documentUrl: this.portal.consentDocumentUrl(c.consentId),
       token: this.auth.token() || ''
     };
     
-    this.dialog.open(PdfViewerDialogComponent, {
+    this.dialog.open(DocumentViewerDialogComponent, {
       data,
       width: '90vw',
       maxWidth: '1200px',
-      panelClass: 'pdf-dialog'
+      panelClass: 'document-dialog'
     }).afterClosed().subscribe(() => {
       // Mark as viewed once they open the document
       const current = new Set(this.viewedConsentIds());

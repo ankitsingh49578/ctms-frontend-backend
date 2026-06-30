@@ -85,7 +85,7 @@ public class TrialController {
         return ResponseEntity.ok(ApiResponse.ok("Trial updated", trialService.updateTrial(id, request)));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLINICAL_MANAGER')")
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a trial")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) throws CTMSException {

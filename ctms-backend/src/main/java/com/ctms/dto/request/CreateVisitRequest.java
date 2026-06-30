@@ -18,8 +18,9 @@ public class CreateVisitRequest {
     @Min(value = 1, message = "patientId must be a positive id")
     private Integer patientId;
 
+    @NotNull(message = "doctorId is required")
     @Min(value = 1, message = "doctorId must be a positive id")
-    private Integer doctorId;        // optional
+    private Integer doctorId;
 
     @Min(value = 1, message = "managerId must be a positive id")
     private Integer managerId;       // optional

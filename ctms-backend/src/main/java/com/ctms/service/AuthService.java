@@ -22,5 +22,5 @@ public interface AuthService {
     UserResponse me() throws CTMSException;
 
     /** Register a new participant. */
-    com.ctms.dto.response.PatientResponse registerParticipant(com.ctms.dto.request.RegisterRequest request) throws CTMSException;
+    com.ctms.dto.response.PatientResponse registerParticipant(com.ctms.dto.request.RegisterRequest request, org.springframework.web.multipart.MultipartFile medicalDocument) throws CTMSException;
 }

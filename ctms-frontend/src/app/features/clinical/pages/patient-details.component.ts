@@ -11,6 +11,10 @@ import { forkJoin } from 'rxjs';
 import { PatientService } from '../services/patients.service';
 import { UiService } from '../../../core/services/ui.service';
 import { ApiService } from '../../../core/services/api.service';
+import { MatDialog } from '@angular/material/dialog';
+import { DocumentViewerDialogComponent } from '../../../shared/document-viewer.dialog';
+import { ENDPOINTS } from '../../../core/constants/api-endpoints';
+import { AuthService } from '../../../core/services/auth.service';
 import {
   ConsentResponse,
 
@@ -40,7 +44,7 @@ import { statusTone } from '../../../core/models/enums';
       </header>
 
       @if (loading()) {
-        <div class="state"><mat-spinner diameter="36" /><p>Loading patient details…</p></div>
+        <div class="state"><mat-spinner diameter="36" /><p>Loading patient details?</p></div>
       } @else if (error()) {
         <div class="state">
           <mat-icon>error_outline</mat-icon><p>{{ error() }}</p>
@@ -81,11 +85,11 @@ import { statusTone } from '../../../core/models/enums';
                   <div class="kv-list">
                     <div class="kv"><label>Code</label><span>{{ patient()!.patientCode }}</span></div>
                     <div class="kv"><label>Name</label><span>{{ patient()!.fullName }}</span></div>
-                    <div class="kv"><label>Gender</label><span>{{ patient()!.gender || '—' }}</span></div>
-                    <div class="kv"><label>Date of Birth</label><span>{{ patient()!.dob ? (patient()!.dob | date:'mediumDate') : '—' }}</span></div>
-                    <div class="kv"><label>Phone</label><span>{{ patient()!.phone || '—' }}</span></div>
-                    <div class="kv"><label>Email</label><span>{{ patient()!.email || '—' }}</span></div>
-                    <div class="kv"><label>Address</label><span>{{ patient()!.address || '—' }}</span></div>
+                    <div class="kv"><label>Gender</label><span>{{ patient()!.gender || '?' }}</span></div>
+                    <div class="kv"><label>Date of Birth</label><span>{{ patient()!.dob ? (patient()!.dob | date:'mediumDate') : '?' }}</span></div>
+                    <div class="kv"><label>Phone</label><span>{{ patient()!.phone || '?' }}</span></div>
+                    <div class="kv"><label>Email</label><span>{{ patient()!.email || '?' }}</span></div>
+                    <div class="kv"><label>Address</label><span>{{ patient()!.address || '?' }}</span></div>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -96,14 +100,51 @@ import { statusTone } from '../../../core/models/enums';
                 </mat-card-header>
                 <mat-card-content>
                   <div class="kv-list">
-                    <div class="kv"><label>Blood Group</label><span>{{ patient()!.bloodGroup || '—' }}</span></div>
-                    <div class="kv"><label>Med. History Doc.</label><span>{{ patient()!.medicalHistoryDocumentName || '—' }}</span></div>
+                    <div class="kv"><label>Blood Group</label><span>{{ patient()!.bloodGroup || '?' }}</span></div>
                     <div class="kv"><label>Status</label><span class="chip" [class]="'chip--' + tone(patient()!.status)">{{ patient()!.status }}</span></div>
                     <div class="kv"><label>Registered</label><span>{{ patient()!.createdAt | date:'mediumDate' }}</span></div>
                   </div>
                 </mat-card-content>
               </mat-card>
+
+              <mat-card class="ctms-card">
+                <mat-card-header>
+                  <mat-card-title>Medical Document</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  @if (patient()!.medicalDocumentName) {
+                    <div class="document-card" style="display:flex; align-items:center; justify-content:space-between; padding:1rem; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc;">
+                      <div style="display:flex; align-items:center; gap:1rem;">
+                        <mat-icon style="color:#ff6b6b; font-size:2rem; width:2rem; height:2rem;">insert_drive_file</mat-icon>
+                        <div>
+                          <div style="font-weight:600; color:#1e293b; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ patient()!.medicalDocumentName }}</div>
+                          <div style="font-size:0.85rem; color:#64748b;">{{ patient()!.uploadedDate | date:'mediumDate' }} ? {{ (patient()!.medicalDocumentSize! / 1024 / 1024).toFixed(2) }} MB</div>
+                        </div>
+                      </div>
+                      <div style="display:flex; gap:0.5rem;">
+                        <button mat-icon-button color="primary" (click)="viewMedicalDocument()" matTooltip="View Document">
+                          <mat-icon>visibility</mat-icon>
+                        </button>
+                        <button mat-icon-button color="primary" (click)="downloadMedicalDocument()" matTooltip="Download Document">
+                          <mat-icon>download</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="empty-state" style="padding: 1.5rem;">No medical document uploaded.</div>
+                  }
+                </mat-card-content>
+              </mat-card>
             </div>
+            
+            @if (patient()!.status === 'Pending') {
+              <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end; padding: 1rem; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);">
+                <button mat-stroked-button color="warn" (click)="rejectParticipant()">Reject</button>
+                <button mat-flat-button color="primary" [disabled]="!documentViewed()" (click)="verifyParticipant()">
+                  {{ documentViewed() ? 'Verify Participant' : 'Review Document First' }}
+                </button>
+              </div>
+            }
           </mat-tab>
 
           <mat-tab label="Trials">
@@ -171,7 +212,7 @@ import { statusTone } from '../../../core/models/enums';
                 </ng-container>
                 <ng-container matColumnDef="doctor">
                   <th mat-header-cell *matHeaderCellDef>Assigned Doctor</th>
-                  <td mat-cell *matCellDef="let v">{{ v.doctorName || '—' }}</td>
+                  <td mat-cell *matCellDef="let v">{{ v.doctorName || '?' }}</td>
                 </ng-container>
                 <ng-container matColumnDef="status">
                   <th mat-header-cell *matHeaderCellDef>Status</th>
@@ -193,7 +234,7 @@ import { statusTone } from '../../../core/models/enums';
                 </ng-container>
                 <ng-container matColumnDef="value">
                   <th mat-header-cell *matHeaderCellDef>Result Value</th>
-                  <td mat-cell *matCellDef="let r">{{ r.resultValue || '—' }} {{ r.unit || '' }}</td>
+                  <td mat-cell *matCellDef="let r">{{ r.resultValue || '?' }} {{ r.unit || '' }}</td>
                 </ng-container>
                 <ng-container matColumnDef="date">
                   <th mat-header-cell *matHeaderCellDef>Result Date</th>
@@ -264,12 +305,15 @@ export class PatientDetailsComponent implements OnInit {
   private readonly ui = inject(UiService);
   private readonly api = inject(ApiService);
   private readonly route = inject(ActivatedRoute);
+  private readonly dialog = inject(MatDialog);
+  private readonly auth = inject(AuthService);
 
   readonly tone = statusTone;
   
   readonly patientId = signal<number | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly documentViewed = signal(false);
 
   readonly patient = signal<PatientResponse | null>(null);
   readonly enrollments = signal<EnrollmentResponse[]>([]);
@@ -317,5 +361,67 @@ export class PatientDetailsComponent implements OnInit {
     });
   }
 
+  viewMedicalDocument(): void {
+    const p = this.patient();
+    if (!p) return;
+    const url = `${this.api.getBaseUrl()}/api/patients/${p.patientId}/medical-document`;
+    const token = this.auth.token();
+    if (!token) return;
 
+    this.documentViewed.set(true);
+    this.dialog.open(DocumentViewerDialogComponent, {
+      width: '90vw',
+      maxWidth: '1200px',
+      data: {
+        title: p.medicalDocumentName || 'Medical Document',
+        documentUrl: url,
+        token: token
+      }
+    });
+  }
+
+  downloadMedicalDocument(): void {
+    const p = this.patient();
+    if (!p) return;
+    const url = `${this.api.getBaseUrl()}/api/patients/${p.patientId}/medical-document`;
+    const token = this.auth.token();
+    if (!token) return;
+
+    this.documentViewed.set(true);
+    const a = document.createElement('a');
+    a.href = `${url}?token=${token}`;
+    a.download = p.medicalDocumentName || 'medical-document';
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  verifyParticipant(): void {
+    const id = this.patientId();
+    if (!id) return;
+    this.api.post(`/api/patients/${id}/verify`).subscribe({
+      next: () => {
+        this.ui.success('Participant verified successfully.');
+        this.load();
+      },
+      error: (err) => {
+        this.ui.error('Failed to verify participant.');
+      }
+    });
+  }
+
+  rejectParticipant(): void {
+    const id = this.patientId();
+    if (!id) return;
+    this.api.put(`/api/patients/${id}`, { status: 'Rejected' }).subscribe({
+      next: () => {
+        this.ui.success('Participant rejected.');
+        this.load();
+      },
+      error: (err) => {
+        this.ui.error('Failed to reject participant.');
+      }
+    });
+  }
 }

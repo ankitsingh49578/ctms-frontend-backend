@@ -120,6 +120,7 @@ com\ctms\repository\TrialRepository.class
 com\ctms\dto\response\ParticipantVisitSummaryResponse.class
 com\ctms\enums\Gender.class
 com\ctms\mapper\TestResultMapper.class
+com\ctms\service\FileStorageService$Context.class
 com\ctms\util\converter\AssignmentRoleConverter.class
 com\ctms\exception\DatabaseException.class
 com\ctms\entity\Analytics.class

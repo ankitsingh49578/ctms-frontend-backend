@@ -17,7 +17,7 @@ import { ConsentResponse, TrialResponse } from '../../../core/models/domain.mode
 import { statusTone } from '../../../core/models/enums';
 import { ConsentFormDialogComponent } from '../dialogs/consent-form.dialog';
 import { ConfirmDialogComponent, ConfirmData } from '../../../shared/confirm-dialog.component';
-import { PdfViewerDialogComponent, PdfViewerData } from '../../../shared/pdf-viewer.dialog';
+import { DocumentViewerDialogComponent, DocumentViewerData } from '../../../shared/document-viewer.dialog';
 
 @Component({
   selector: 'ctms-consents-management',
@@ -212,17 +212,15 @@ export class ConsentsManagementComponent {
   }
 
   viewDocument(c: ConsentResponse): void {
-    const data: PdfViewerData = {
-      title: c.documentName || 'Consent Document',
-      pdfUrl: this.consents.documentUrl(c.consentId),
-      token: this.auth.token() || ''
-    };
-    
-    this.dialog.open(PdfViewerDialogComponent, {
-      data,
+    this.dialog.open(DocumentViewerDialogComponent, {
+      data: {
+        title: c.documentName || 'Consent Document',
+        documentUrl: this.consents.documentUrl(c.consentId),
+        token: this.auth.token() || ''
+      } as DocumentViewerData,
       width: '90vw',
       maxWidth: '1200px',
-      panelClass: 'pdf-dialog'
+      panelClass: 'document-dialog'
     });
   }
 

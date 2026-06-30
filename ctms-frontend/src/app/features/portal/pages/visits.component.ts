@@ -43,7 +43,7 @@ import { statusTone } from '../../../core/models/enums';
               <th mat-header-cell *matHeaderCellDef>Visit</th>
               <td mat-cell *matCellDef="let v">
                 {{ v.visitType || 'Visit' }}@if (v.visitNumber) { #{{ v.visitNumber }} }
-                <div class="muted" style="font-size:.76rem">Trial #{{ v.trialId }}</div>
+                <div class="muted" style="font-size:.76rem">{{ v.trialName || 'Trial #' + v.trialId }}</div>
               </td>
             </ng-container>
             <ng-container matColumnDef="scheduled">

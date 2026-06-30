@@ -22,6 +22,7 @@ import { capabilitiesFor } from '../clinical.capabilities';
 import { TrialFormDialogComponent } from '../dialogs/trial-form.dialog';
 import { PickStatusDialogComponent, PickStatusData } from '../dialogs/pick-status.dialog';
 import { AssignManagerDialogComponent } from '../dialogs/assign-manager.dialog';
+import { ConfirmDialogComponent, ConfirmData } from '../../../shared/confirm-dialog.component';
 
 @Component({
   selector: 'ctms-trials-management',
@@ -97,6 +98,9 @@ import { AssignManagerDialogComponent } from '../dialogs/assign-manager.dialog';
                     @if (caps().manageTrials) {
                       <button mat-menu-item (click)="edit(t)"><mat-icon>edit</mat-icon>Edit details</button>
                       <button mat-menu-item (click)="changeStatus(t)"><mat-icon>flag</mat-icon>Change status</button>
+                    }
+                    @if (caps().deleteTrials) {
+                      <button mat-menu-item (click)="delete(t)" class="text-danger"><mat-icon color="warn">delete</mat-icon>Delete trial</button>
                     }
                     @if (caps().assignManagers || caps().viewAssignments) {
                       <button mat-menu-item (click)="assignments(t)"><mat-icon>group_add</mat-icon>Team & assignments</button>
@@ -207,5 +211,22 @@ export class TrialsManagementComponent {
       data: { trial: t, canAssign: this.caps().assignManagers },
       width: '560px', panelClass: 'ctms-dialog',
     });
+  }
+
+  delete(t: TrialResponse): void {
+    const data: ConfirmData = {
+      title: 'Delete trial?',
+      message: `Are you sure you want to delete ${t.trialCode}? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    };
+    this.dialog.open(ConfirmDialogComponent, { data, width: '400px', panelClass: 'ctms-dialog' })
+      .afterClosed().subscribe((ok) => {
+        if (ok) {
+          this.trials.delete(t.trialId).subscribe({
+            next: () => { this.ui.success('Trial deleted.'); this.load(); },
+          });
+        }
+      });
   }
 }

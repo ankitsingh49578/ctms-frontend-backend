@@ -61,6 +61,25 @@ public class PatientController {
         return ResponseEntity.ok(ApiResponse.ok(participantService.getParticipant(id)));
     }
 
+    @PreAuthorize("hasRole('CLINICAL_MANAGER') or (hasRole('PARTICIPANT') and @accessGuard.canViewPatient(#id))")
+    @GetMapping("/{id}/medical-document")
+    @Operation(summary = "Download a participant's medical document")
+    public ResponseEntity<org.springframework.core.io.Resource> downloadMedicalDocument(@PathVariable Integer id) throws CTMSException {
+        org.springframework.core.io.Resource file = participantService.downloadMedicalDocument(id);
+        String contentType = "application/octet-stream";
+        String filename = file.getFilename();
+        if (filename != null) {
+            String lower = filename.toLowerCase();
+            if (lower.endsWith(".pdf")) contentType = "application/pdf";
+            else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) contentType = "image/jpeg";
+            else if (lower.endsWith(".png")) contentType = "image/png";
+        }
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, contentType)
+                .body(file);
+    }
+
     @PreAuthorize("hasRole('CLINICAL_MANAGER')")
     @PostMapping
     @Operation(summary = "Register a participant")

@@ -70,6 +70,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final CurrentUserContext currentUser;
     private final PatientMapper patientMapper;
     private final EnrollmentMapper enrollmentMapper;
+    private final com.ctms.service.FileStorageService fileStorageService;
 
     @Override
     @Transactional
@@ -202,6 +203,16 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
+    public org.springframework.core.io.Resource downloadMedicalDocument(Integer patientId) throws CTMSException {
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
+        if (patient.getMedicalDocumentPath() == null) {
+            throw new ResourceNotFoundException("No medical document found for patient");
+        }
+        return fileStorageService.load(patient.getMedicalDocumentPath());
+    }
+
+    @Override
     @Transactional
     public EnrollmentResponse enroll(CreateEnrollmentRequest req) throws CTMSException {
         log.info("Enrolling participant id={} into trial id={}", req.getPatientId(), req.getTrialId());
@@ -310,10 +321,10 @@ public class ParticipantServiceImpl implements ParticipantService {
         return ParticipantVisitSummaryResponse.builder()
                 .patientId(patient.getPatientId())
                 .patientName(patient.getFirstName() + " " + patient.getLastName())
-                .trialId(trial.getTrialId())
-                .trialName(trial.getTrialName())
-                .trialCode(trial.getTrialCode())
-                .enrollmentStatus(latest.getStatus().dbValue())
+                .trialId(trial != null ? trial.getTrialId() : null)
+                .trialName(trial != null ? trial.getTrialName() : "Unknown Trial")
+                .trialCode(trial != null ? trial.getTrialCode() : "N/A")
+                .enrollmentStatus(latest.getStatus() != null ? latest.getStatus().dbValue() : "Unknown")
                 .totalTrialVisits(totalVisits)
                 .completedVisits(completedVisits)
                 .remainingVisits(totalVisits - completedVisits)

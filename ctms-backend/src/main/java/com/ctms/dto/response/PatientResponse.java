@@ -27,6 +27,9 @@ public class PatientResponse {
     private String address;
     private String bloodGroup;
     private String status;
-    private String medicalHistoryDocumentName;
+    private String medicalDocumentName;
+    private String medicalDocumentPath;
+    private Long medicalDocumentSize;
+    private LocalDateTime medicalDocumentUploadedDate;
     private LocalDateTime createdAt;
 }

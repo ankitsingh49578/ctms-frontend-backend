@@ -57,13 +57,13 @@ interface VisitDialogData { trial: TrialResponse; }
           @if (form.controls.scheduledDate.hasError('required')) { <mat-error>Required</mat-error> }
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Assigned doctor (optional)</mat-label>
+          <mat-label>Assigned doctor</mat-label>
           <mat-select formControlName="doctorId">
-            <mat-option [value]="null">— Unassigned —</mat-option>
             @for (d of doctors(); track d.doctorId) {
               <mat-option [value]="d.doctorId">{{ d.doctorName }}</mat-option>
             }
           </mat-select>
+          @if (form.controls.doctorId.hasError('required')) { <mat-error>Required</mat-error> }
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Window start (optional)</mat-label>
@@ -109,7 +109,7 @@ export class VisitFormDialogComponent {
     visitNumber: this.fb.control<number | null>(1, [Validators.required]),
     visitType: this.fb.control('', [Validators.required]),
     scheduledDate: this.fb.control<Date | null>(null, [Validators.required]),
-    doctorId: this.fb.control<number | null>(null),
+    doctorId: this.fb.control<number | null>(null, [Validators.required]),
     windowStart: this.fb.control<Date | null>(null),
     windowEnd: this.fb.control<Date | null>(null),
     notes: this.fb.control(''),
@@ -129,7 +129,7 @@ export class VisitFormDialogComponent {
     this.visits.schedule({
       trialId: this.data.trial.trialId,
       patientId: v.patientId!,
-      doctorId: v.doctorId ?? undefined,
+      doctorId: v.doctorId!,
       visitNumber: v.visitNumber!,
       visitType: v.visitType!,
       scheduledDate: toIsoDate(v.scheduledDate)!,

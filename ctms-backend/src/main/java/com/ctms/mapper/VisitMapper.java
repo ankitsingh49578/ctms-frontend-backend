@@ -17,6 +17,7 @@ public class VisitMapper {
                 .patientId(v.getPatient() != null ? v.getPatient().getPatientId() : null)
                 .patientName(v.getPatient() != null ? v.getPatient().getFirstName() + " " + v.getPatient().getLastName() : null)
                 .doctorId(v.getDoctor() != null ? v.getDoctor().getDoctorId() : null)
+                .doctorName(v.getDoctor() != null ? v.getDoctor().getDoctorName() : null)
                 .managerId(v.getManager() != null ? v.getManager().getManagerId() : null)
                 .visitNumber(v.getVisitNumber())
                 .visitType(v.getVisitType())

@@ -24,7 +24,10 @@ public class PatientMapper {
                 .address(p.getAddress())
                 .bloodGroup(p.getBloodGroup())
                 .status(p.getStatus())
-                .medicalHistoryDocumentName(p.getMedicalHistoryDocumentName())
+                .medicalDocumentName(p.getMedicalDocumentName())
+                .medicalDocumentPath(p.getMedicalDocumentPath())
+                .medicalDocumentSize(p.getMedicalDocumentSize())
+                .medicalDocumentUploadedDate(p.getMedicalDocumentUploadedDate())
                 .createdAt(p.getCreatedAt())
                 .build();
     }

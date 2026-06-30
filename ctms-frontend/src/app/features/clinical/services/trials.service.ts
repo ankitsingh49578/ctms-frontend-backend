@@ -38,7 +38,10 @@ export class TrialService {
     return this.api.put<TrialResponse>(ENDPOINTS.trials.byId(id), body);
   }
   updateStatus(id: number, status: string): Observable<TrialResponse> {
-    return this.api.put<TrialResponse>(ENDPOINTS.trials.status(id), { status });
+    return this.api.put<TrialResponse>(`${ENDPOINTS.trials.status(id)}?status=${encodeURIComponent(status)}`, {});
+  }
+  delete(id: number): Observable<void> {
+    return this.api.delete<void>(ENDPOINTS.trials.byId(id));
   }
   assignManager(id: number, body: AssignManagerRequest): Observable<TrialAssignmentResponse> {
     return this.api.post<TrialAssignmentResponse>(ENDPOINTS.trials.assignManager(id), body);

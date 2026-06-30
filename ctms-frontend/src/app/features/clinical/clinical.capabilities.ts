@@ -24,6 +24,7 @@ export interface ClinicalCapabilities {
   manageConsents: boolean;      // CM only
   reportAdverseEvents: boolean; // report + update status (CM here; doctors elsewhere)
   generateReports: boolean;     // generate (both manager roles)
+  deleteTrials: boolean;        // CM only
 }
 
 export function capabilitiesFor(role: RoleKey | null): ClinicalCapabilities {
@@ -41,5 +42,6 @@ export function capabilitiesFor(role: RoleKey | null): ClinicalCapabilities {
     manageConsents: isCM,
     reportAdverseEvents: isCM,
     generateReports: isManager,
+    deleteTrials: isCM,
   };
 }

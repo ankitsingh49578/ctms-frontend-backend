@@ -73,7 +73,7 @@ interface ConsentDialogData { trial: TrialResponse; }
             <mat-icon class="upload-icon">upload_file</mat-icon>
             <div class="upload-text">
               <span class="primary-text">Click to upload consent PDF</span>
-              <span class="secondary-text">PDF format only, maximum size 10MB</span>
+              <span class="secondary-text">PDF format only, maximum size 1MB</span>
             </div>
           }
         </div>
@@ -190,13 +190,13 @@ export class ConsentFormDialogComponent {
       this.fileError.set(null);
       
       if (file.type !== 'application/pdf') {
-        this.fileError.set('Only PDF files are allowed.');
+        this.ui.error('Only PDF files are allowed.');
         this.selectedFile.set(null);
         return;
       }
       
-      if (file.size > 10 * 1024 * 1024) { // 10MB
-        this.fileError.set('Maximum file size is 10 MB.');
+      if (file.size > 1 * 1024 * 1024) { // 1MB
+        this.ui.error('Maximum file size is 1 MB.');
         this.selectedFile.set(null);
         return;
       }

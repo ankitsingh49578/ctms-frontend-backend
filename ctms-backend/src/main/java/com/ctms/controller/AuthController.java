@@ -54,13 +54,14 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok("Logout successful", null));
     }
 
-    @PostMapping("/register")
+    @PostMapping(value = "/register", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     @io.swagger.v3.oas.annotations.security.SecurityRequirements
     @Operation(summary = "Register a new participant",
-            description = "Public endpoint to self-register a new participant account with medical history document name.")
+            description = "Public endpoint to self-register a new participant account with medical history document.")
     public ResponseEntity<ApiResponse<PatientResponse>> register(
-            @Valid @RequestBody RegisterRequest request) throws CTMSException {
-        PatientResponse response = authService.registerParticipant(request);
+            @org.springframework.web.bind.annotation.RequestPart("patient") @Valid RegisterRequest request,
+            @org.springframework.web.bind.annotation.RequestPart("medicalDocument") org.springframework.web.multipart.MultipartFile medicalDocument) throws CTMSException {
+        PatientResponse response = authService.registerParticipant(request, medicalDocument);
         return ResponseEntity.ok(ApiResponse.ok("Registration successful", response));
     }
 

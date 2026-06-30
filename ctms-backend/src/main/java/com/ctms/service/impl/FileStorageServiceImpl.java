@@ -24,35 +24,39 @@ public class FileStorageServiceImpl implements FileStorageService {
 
     private static final Logger log = LoggerFactory.getLogger(FileStorageServiceImpl.class);
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-    private static final String UPLOAD_DIR = "uploads/consent-documents";
-
-    private final Path uploadPath;
 
     public FileStorageServiceImpl() {
-        this.uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
-        try {
-            Files.createDirectories(this.uploadPath);
-            log.info("Consent document upload directory: {}", this.uploadPath);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not create upload directory: " + UPLOAD_DIR, e);
+        for (FileStorageService.Context ctx : FileStorageService.Context.values()) {
+            try {
+                Path uploadPath = Paths.get(ctx.getDirectory()).toAbsolutePath().normalize();
+                Files.createDirectories(uploadPath);
+                log.info("Initialized upload directory: {} for context: {}", uploadPath, ctx.name());
+            } catch (IOException e) {
+                throw new RuntimeException("Could not create upload directory for " + ctx.name(), e);
+            }
         }
     }
 
     @Override
-    public String store(MultipartFile file) throws CTMSException {
+    public String store(MultipartFile file, Context context) throws CTMSException {
         if (file == null || file.isEmpty()) {
-            throw new ValidationException("Consent document is mandatory.");
+            throw new ValidationException("Document is mandatory.");
         }
 
         // Validate file type
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
-            throw new ValidationException("Only PDF files are allowed.");
+        if (originalFilename == null) {
+            throw new ValidationException("File name is missing.");
         }
-
+        
+        String ext = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
         String contentType = file.getContentType();
-        if (contentType != null && !contentType.equalsIgnoreCase("application/pdf")) {
-            throw new ValidationException("Only PDF files are allowed.");
+        
+        boolean isValidExt = context.getAllowedExtensions().contains(ext);
+        boolean isValidType = contentType != null && context.getAllowedExtensions().contains(contentType.toLowerCase());
+        
+        if (!isValidExt && !isValidType) {
+            throw new ValidationException("Invalid file type. Allowed: " + String.join(", ", context.getAllowedExtensions()));
         }
 
         // Validate file size
@@ -61,17 +65,17 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
 
         // Generate unique filename
-        String storedFilename = UUID.randomUUID() + ".pdf";
-        Path targetPath = this.uploadPath.resolve(storedFilename);
+        String storedFilename = UUID.randomUUID() + "." + ext;
+        Path targetPath = Paths.get(context.getDirectory()).toAbsolutePath().normalize().resolve(storedFilename);
 
         try {
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-            log.info("Stored consent document: {} -> {}", originalFilename, storedFilename);
+            log.info("Stored document: {} -> {}", originalFilename, storedFilename);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store consent document", e);
+            throw new RuntimeException("Failed to store document", e);
         }
 
-        return UPLOAD_DIR + "/" + storedFilename;
+        return context.getDirectory() + "/" + storedFilename;
     }
 
     @Override
