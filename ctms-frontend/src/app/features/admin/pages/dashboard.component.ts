@@ -23,7 +23,7 @@ interface AdminLink {
   imports: [RouterLink, MatProgressSpinnerModule, MatButtonModule, MatIconModule],
   template: `
     <section class="page">
-      <div class="hero">
+      <div class="hero hero--dark">
         <h1>Administration</h1>
         <p>Accounts, roles, the audit trail and system configuration in one place.</p>
         <div class="hero__icon"><mat-icon>shield_person</mat-icon></div>

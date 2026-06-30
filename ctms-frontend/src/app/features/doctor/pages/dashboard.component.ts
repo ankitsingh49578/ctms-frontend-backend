@@ -20,13 +20,13 @@ import { DoctorResponse } from '../../../core/models/domain.models';
       @if (loading()) {
         <div class="state"><mat-spinner diameter="36" /><p>Loading your dashboard…</p></div>
       } @else if (noProfile()) {
-        <div class="hero"><div class="hero__icon"><mat-icon>stethoscope</mat-icon></div>
+        <div class="hero hero--light"><div class="hero__icon"><mat-icon>stethoscope</mat-icon></div>
           <h1>Welcome, Doctor</h1>
           <p>Your account isn't linked to a doctor profile yet, so visit and result tools are unavailable.
              Ask an administrator to create your doctor record, then sign in again.</p>
         </div>
       } @else {
-        <div class="hero">
+        <div class="hero hero--light">
           <div class="hero__icon"><mat-icon>stethoscope</mat-icon></div>
           <h1>Welcome, {{ doctor()?.doctorName || 'Doctor' }}</h1>
           <p>{{ doctor()?.specialization || 'Clinical investigator' }} · review your visits, record results and flag safety events.</p>

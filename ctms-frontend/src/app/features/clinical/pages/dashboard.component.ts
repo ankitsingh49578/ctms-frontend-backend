@@ -16,7 +16,7 @@ interface QuickLink { label: string; icon: string; link: string; }
   imports: [RouterLink, MatProgressSpinnerModule, MatIconModule, MatButtonModule],
   template: `
     <section class="page">
-      <div class="hero">
+      <div class="hero hero--dark">
         <div class="hero__icon"><mat-icon>insights</mat-icon></div>
         <h1>{{ greeting() }}</h1>
         <p>{{ subtitle() }}</p>

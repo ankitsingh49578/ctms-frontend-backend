@@ -21,20 +21,21 @@ interface Stat {
   imports: [RouterLink, MatProgressSpinnerModule, MatIconModule, MatButtonModule],
   template: `
     <section class="page">
-      <header class="page__head">
+      <div class="hero hero--light" style="display:flex; justify-content:space-between; align-items:center;">
         <div>
-          <h1 class="page__title">
+          <div class="hero__icon"><mat-icon>person</mat-icon></div>
+          <h1>
             @if (data(); as d) { Welcome back, {{ firstName(d.fullName) }} }
             @else { Dashboard }
           </h1>
-          <p class="page__subtitle">Your trials, visits and consents at a glance.</p>
+          <p>Your trials, visits and consents at a glance.</p>
         </div>
         @if (data(); as d) {
           <span class="chip" [class]="'chip--' + tone(d.accountStatus)">
             Account: {{ d.accountStatus }}
           </span>
         }
-      </header>
+      </div>
 
       @if (loading()) {
         <div class="grid grid--stats">
@@ -52,13 +53,13 @@ interface Stat {
         <div class="grid grid--stats">
           @for (s of stats(); track s.label) {
             @if (s.link) {
-              <a class="stat" [routerLink]="s.link" style="text-decoration:none;color:inherit">
+              <a class="stat stat--accent stat--link" [routerLink]="s.link" style="text-decoration:none;color:inherit">
                 <div class="stat__icon"><mat-icon>{{ s.icon }}</mat-icon></div>
                 <div class="stat__value">{{ s.value }}</div>
                 <div class="stat__label">{{ s.label }}</div>
               </a>
             } @else {
-              <div class="stat">
+              <div class="stat stat--accent">
                 <div class="stat__icon"><mat-icon>{{ s.icon }}</mat-icon></div>
                 <div class="stat__value">{{ s.value }}</div>
                 <div class="stat__label">{{ s.label }}</div>
@@ -67,9 +68,9 @@ interface Stat {
           }
         </div>
 
-        <div class="card" style="margin-top:20px">
-          <h3 style="margin:0 0 6px">Quick actions</h3>
-          <p class="muted" style="margin:0 0 14px">Jump straight to what needs your attention.</p>
+        <div class="card" style="margin-top:24px">
+          <h3 class="section-title"><mat-icon>bolt</mat-icon>Quick actions</h3>
+          <p class="muted" style="margin:0 0 14px; font-size:.9rem;">Jump straight to what needs your attention.</p>
           <div class="row-actions" style="flex-wrap:wrap;gap:10px">
             <a mat-flat-button routerLink="/portal/trials"><mat-icon>science</mat-icon>Browse trials</a>
             <a mat-stroked-button routerLink="/portal/consents"><mat-icon>fact_check</mat-icon>Review consents</a>
